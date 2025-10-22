@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Online Cab Booking System</title>
+<style>
+  /* Reset and base styles */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f7f8;
+    margin: 0; padding: 0;
+    color: #333;
+  }
+  header {
+    background: #0275d8;
+    color: white;
+    padding: 15px 20px;
+    text-align: center;
+    font-size: 1.5em;
+    letter-spacing: 1px;
+  }
+  nav {
+    background: #343a40;
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+  }
+  nav button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1em;
+    padding: 10px 15px;
+    margin: 0 5px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+  }
+  nav button:hover, nav button.active {
+    background-color: #0275d8;
+  }
+  main {
+    max-width: 600px;
+    margin: 20px auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    padding: 25px 30px;
+  }
+  .page {
+    display: none;
+  }
+  .page.active {
+    display: block;
+  }
+  h1, h2 {
+    text-align: center;
+    color: #0275d8;
+  }
+  form {
+    margin-top: 20px;
+  }
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  input, select, button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 18px;
+    font-size: 1em;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    transition: border-color 0.3s ease;
+  }
+  input:focus, select:focus {
+    border-color: #0275d8;
+    outline: none;
+  }
+  button {
+    background: #0275d8;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+  }
+  button:hover {
+    background: #025aa5;
+  }
+  .message {
+    margin: 10px 0;
+    padding: 12px 15px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .error {
+    background: #f8d7da;
+    color: #842029;
+  }
+  .success {
+    background: #d1e7dd;
+    color: #0f5132;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+  th, td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  th {
+    background: #0275d8;
+    color: white;
+    font-weight: 700;
+    text-align: left;
+  }
+  .loading {
+    text-align: center;
+    font-style: italic;
+    color: #0275d8;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  footer {
+    text-align: center;
+    font-size: 0.9em;
+    color: #777;
+    margin: 30px 0 10px;
+  }
+</style>
+</head>
+<body>
+
+<header>Online Cab Booking System</header>
+
+<nav>
+  <button id="navHome" class="active" onclick="goToPage('home')">Home</button>
+  <button id="navAuth" onclick="toggleAuth()">Login</button>
+  <button id="navProfile" style="display:none;" onclick="goToPage('profile')">Profile</button>
+  <button id="navLogout" style="display:none;" onclick="logout()">Logout</button>
+</nav>
+
+<main>
+  <div id="message" class="message" style="display:none;"></div>
+  <div id="loading" class="loading" style="display:none;">Loading...</div>
+
+  <!-- HOME -->
+  <section id="home" class="page active">
+    <h1>Welcome!</h1>
+    <p style="text-align:center; font-size:1.1em;">Book your cab ride with ease.</p>
+    <div style="display:flex; flex-direction:column; gap: 10px; max-width:300px; margin: 0 auto;">
+      <button onclick="ensureLoggedIn(() => goToPage('bookRide'))">Book a Ride</button>
+      <button onclick="ensureLoggedIn(() => goToPage('bookingHistory'))">Booking History</button>
+      <button onclick="goToPage('driverReg')">Driver Registration</button>
+      <button onclick="goToPage('adminDashboard')">Admin Dashboard</button>
+    </div>
+  </section>
+
+  <!-- LOGIN/REGISTER -->
+  <section id="auth" class="page">
+    <h2 id="authTitle">Login</h2>
+    <form id="authForm" onsubmit="handleAuth(event)">
+      <div id="registerFields" style="display:none;">
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" />
+        <label for="phone">Phone Number</label>
+        <input type="text" id="phone" />
+      </div>
+      <label for="username">Username</label>
+      <input type="text" id="username" required />
+      <label for="password">Password</label>
+      <input type="password" id="password" required />
+      <button type="submit" id="authSubmit">Login</button>
+    </form>
+    <p style="text-align:center;">
+      <span id="authSwitchText">Don’t have an account?</span>
+      <button onclick="toggleAuth()" style="font-weight:700; border:none; background:none; color:#0275d8; cursor:pointer;">Register here</button>
+    </p>
+  </section>
+
+  <!-- PROFILE -->
+  <section id="profile" class="page">
+    <h2>Your Profile</h2>
+    <form onsubmit="updateProfile(event)">
+      <label for="profileFullName">Full Name</label>
+      <input type="text" id="profileFullName" required />
+      <label for="profilePhone">Phone Number</label>
+      <input type="text" id="profilePhone" required />
+      <label for="profileUsername">Username</label>
+      <input type="text" id="profileUsername" disabled />
+      <button type="submit">Update Profile</button>
+    </form>
+  </section>
+
+  <!-- DRIVER REGISTRATION -->
+  <section id="driverReg" class="page">
+    <h2>Driver Registration</h2>
+    <form onsubmit="handleDriverReg(event)">
+      <label for="driverName">Driver Name</label>
+      <input type="text" id="driverName" required />
+      <label for="vehicleNumber">Vehicle Number</label>
+      <input type="text" id="vehicleNumber" required />
+      <label for="driverAvailability">Availability</label>
+      <select id="driverAvailability" required>
+        <option value="available">Available</option>
+        <option value="not-available">Not Available</option>
+      </select>
+      <button type="submit">Register Driver</button>
+    </form>
+  </section>
+
+  <!-- BOOK RIDE -->
+  <section id="bookRide" class="page">
+    <h2>Book a Ride</h2>
+    <form onsubmit="handleBooking(event)">
+      <label for="pickupLocation">Pickup Location</label>
+      <input id="pickupLocation" required />
+      <label for="dropLocation">Drop Location</label>
+      <input id="dropLocation" required />
+      <button type="submit">Book Now</button>
+    </form>
+  </section>
+
+  <!-- BOOKING HISTORY -->
+  <section id="bookingHistory" class="page">
+    <h2>Booking History</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Pickup</th>
+          <th>Drop</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="bookingHistoryBody">
+        <tr><td colspan="3" style="text-align:center;">No bookings yet.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ADMIN DASHBOARD -->
+  <section id="adminDashboard" class="page">
+    <h2>Admin Dashboard</h2>
+    <table>
+      <tbody>
+        <tr><td>Total Registered Users:</td><td id="adminUserCount">0</td></tr>
+        <tr><td>Total Drivers Registered:</td><td id="adminDriverCount">0</td></tr>
+        <tr><td>Total Bookings:</td><td id="adminBookingCount">0</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- PAYMENT PAGE -->
+  <section id="payment" class="page">
+    <h2>Payment (Dummy)</h2>
+    <form onsubmit="handlePayment(event)">
+      <label>Card Number</label>
+      <input type="text" pattern="\\d{16}" placeholder="1234 5678 9012 3456" required />
+      <label>Name on Card</label>
+      <input type="text" required />
+      <label>Expiry Date (MM/YY)</label>
+      <input type="text" placeholder="MM/YY" required />
+      <label>CVV</label>
+      <input type="password" pattern="\\d{3}" required />
+      <button type="submit">Pay Now</button>
+    </form>
+  </section>
+</main>
+
+<footer>&copy; 2025 Online Cab Booking</footer>
+
+<script>
+  // Frontend state stores
+  const users = [];
+  const drivers = [];
+  const bookings = [];
+
+  let currentUser = null;
+
+  // Message helper
+  function showMessage(text, isError = false) {
+    const msg = document.getElementById('message');
+    msg.textContent = text;
+    msg.className = isError ? 'message error' : 'message success';
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 4000);
+  }
+
+  // Loading display (future use)
+  function setLoading(show) {
+    document.getElementById('loading').style.display = show ? 'block' : 'none';
+  }
+
+  // Navigation management
+  function goToPage(page) {
+    setLoading(false);
+    const pages = document.querySelectorAll('.page');
+    pages.forEach(p => p.classList.remove('active'));
+    document.getElementById(page).classList.add('active');
+    updateNav(page);
+    if (page === 'profile') loadProfile();
+    if (page === 'bookingHistory') loadBookings();
+    if (page === 'adminDashboard') loadAdminDashboard();
+    clearForms();
+  }
+
+  // Update nav button styles based on page and login
+  function updateNav(activePage) {
+    document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+    if (activePage === 'auth') {
+      document.getElementById('navAuth').classList.add('active');
+    }
+    else if (activePage === 'home') {
+      document.getElementById('navHome').classList.add('active');
+    }
+    if (currentUser) {
+      document.getElementById('navAuth').style.display = 'none';
+      document.getElementById('navProfile').style.display = 'inline-block';
+      document.getElementById('navLogout').style.display = 'inline-block';
+      if (activePage !== 'auth') {
+        document.getElementById('navProfile').classList.toggle('active', activePage === 'profile');
+      }
+    } else {
+      document.getElementById('navAuth').style.display = 'inline-block';
+      document.getElementById('navProfile').style.display = 'none';
+      document.getElementById('navLogout').style.display = 'none';
+    }
+  }
+
+  // Clear all forms
+  function clearForms() {
+    document.querySelectorAll('form').forEach(f => f.reset());
+  }
+
+  // Toggle between Login and Register in auth page
+  function toggleAuth() {
+    goToPage('auth');
+    const title = document.getElementById('authTitle');
+    const registerFields = document.getElementById('registerFields');
+    const authSubmit = document.getElementById('authSubmit');
+    const authSwitchText = document.getElementById('authSwitchText');
+    const navAuth = document.getElementById('navAuth');
+
+    if (title.textContent === 'Login') {
+      title.textContent = 'Register';
+      registerFields.style.display = 'block';
+      authSubmit.textContent = 'Register';
+      authSwitchText.textContent = 'Already have an account?';
+      navAuth.textContent = 'Register';
+    } else {
+      title.textContent = 'Login';
+      registerFields.style.display = 'none';
+      authSubmit.textContent = 'Login';
+      authSwitchText.textContent = "Don't have an account?";
+      navAuth.textContent = 'Login';
+    }
+    clearForms();
+  }
+
+  // Handle auth form submit
+  function handleAuth(event) {
+    event.preventDefault();
+    setLoading(true);
+
+    const title = document.getElementById('authTitle').textContent;
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    if (title === 'Register') {
+      const fullName = document.getElementById('fullName').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      if (!fullName || !phone || !username || !password) {
+        showMessage('Please fill all the fields', true);
+        setLoading(false);
+        return;
+      }
+      const exist = users.find(u => u.username === username);
+      if (exist) {
+        showMessage('Username already exists', true);
+        setLoading(false);
+        return;
+      }
+      users.push({ username, password, fullName, phone });
+      showMessage('Registration successful! Please login.');
+      toggleAuth();
+      setLoading(false);
+    } else {
+      const user = users.find(u => u.username === username && u.password === password);
+      if (!user) {
+        showMessage('Invalid username or password', true);
+        setLoading(false);
+        return;
+      }
+      currentUser = user;
+      showMessage(`Welcome ${currentUser.fullName || currentUser.username}!`);
+      goToPage('home');
+      setLoading(false);
+    }
+  }
+
+  // Logout function
+  function logout() {
+    currentUser = null;
+    showMessage('Logged out successfully.');
+    goToPage('home');
+  }
+
+  // Load profile data
+  function loadProfile() {
+    if (!currentUser) {
+      showMessage('Please login first to view profile', true);
+      goToPage('auth');
+      return;
+    }
+    document.getElementById('profileFullName').value = currentUser.fullName;
+    document.getElementById('profilePhone').value = currentUser.phone;
+    document.getElementById('profileUsername').value = currentUser.username;
+  }
+
+  // Update profile submit
+  function updateProfile(event) {
+    event.preventDefault();
+    const fullName = document.getElementById('profileFullName').value.trim();
+    const phone = document.getElementById('profilePhone').value.trim();
+    if (!fullName || !phone) {
+      showMessage('Please fill all profile fields', true);
+      return;
+    }
+    currentUser.fullName = fullName;
+    currentUser.phone = phone;
+    showMessage('Profile updated successfully');
+  }
+
+  // Handle driver registration
+  function handleDriverReg(event) {
+    event.preventDefault();
+    const name = document.getElementById('driverName').value.trim();
+    const vehicle = document.getElementById('vehicleNumber').value.trim();
+    const availability = document.getElementById('driverAvailability').value;
+    if (!name || !vehicle) {
+      showMessage('Please fill all driver details', true);
+      return;
+    }
+    drivers.push({ name, vehicle, availability });
+    showMessage('Driver registered successfully');
+    event.target.reset();
+  }
+
+  // Book a ride
+  function handleBooking(event) {
+    event.preventDefault();
+    if (!currentUser) {
+      showMessage('Please login to book rides', true);
+      goToPage('auth');
+      return;
+    }
+    const pickup = document.getElementById('pickupLocation').value.trim();
+    const drop = document.getElementById('dropLocation').value.trim();
+    if (!pickup || !drop) {
+      showMessage('Please enter pickup and drop locations', true);
+      return;
+    }
+    bookings.push({ username: currentUser.username, pickup, drop, status: 'Booked' });
+    showMessage('Ride booked successfully!');
+    event.target.reset();
+    goToPage('bookingHistory');
+  }
+
+  // Load booking history table
+  function loadBookings() {
+    if (!currentUser) {
+      showMessage('Please login to see your booking history', true);
+      goToPage('auth');
+      return;
+    }
+    const tbody = document.getElementById('bookingHistoryBody');
+    tbody.innerHTML = '';
+    const userBookings = bookings.filter(b => b.username === currentUser.username);
+    if (userBookings.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No bookings found</td></tr>';
+      return;
+    }
+    userBookings.forEach(b => {
+      const row = `<tr><td>${b.pickup}</td><td>${b.drop}</td><td>${b.status}</td></tr>`;
+      tbody.insertAdjacentHTML('beforeend', row);
+    });
+  }
+
+  // Load admin dashboard stats
+  function loadAdminDashboard() {
+    document.getElementById('adminUserCount').textContent = users.length;
+    document.getElementById('adminDriverCount').textContent = drivers.length;
+    document.getElementById('adminBookingCount').textContent = bookings.length;
+  }
+
+  // Dummy payment handler
+  function handlePayment(event) {
+    event.preventDefault();
+    alert('Payment successful! Thank you for booking.');
+    goToPage('home');
+  }
+
+  // Ensure user logged in before action else go to auth
+  function ensureLoggedIn(callback) {
+    if (!currentUser) {
+      showMessage('Please login first.', true);
+      goToPage('auth');
+    } else {
+      callback();
+    }
+  }
+
+  // Start on home page
+  updateNav('home');
+</script>
+
+</body>
+</html>
