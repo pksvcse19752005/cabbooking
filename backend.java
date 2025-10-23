@@ -14,10 +14,10 @@ import java.util.concurrent.atomic.AtomicLong;
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "*")
-public class CabBookingApplication {
+public class backend {
 
     public static void main(String[] args) {
-        SpringApplication.run(CabBookingApplication.class, args);
+        SpringApplication.run(backend.class, args);
     }
 
     private Map<String, User> users = new HashMap<>();
@@ -168,3 +168,4 @@ public class CabBookingApplication {
         return map;
     }
 }
+
